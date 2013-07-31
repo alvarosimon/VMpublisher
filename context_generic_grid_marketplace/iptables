@@ -1,0 +1,107 @@
+# Firewall configuration written by system-config-securitylevel
+# Manual customization of this file is not recommended.
+*filter
+:INPUT ACCEPT [0:0]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+:RH-Firewall-1-INPUT - [0:0]
+
+
+-A INPUT -j RH-Firewall-1-INPUT
+-A FORWARD -j RH-Firewall-1-INPUT
+
+
+## The known list of suspicious IP addresses (security incident from CERN)
+#
+-A RH-Firewall-1-INPUT -s 64.27.17.70/32 -j DROP
+-A RH-Firewall-1-INPUT -s 64.72.120.48/32 -j DROP
+-A RH-Firewall-1-INPUT -s 67.148.94.172/32 -j DROP
+-A RH-Firewall-1-INPUT -s 69.130.0.0/16 -j DROP
+-A RH-Firewall-1-INPUT -s 69.49.172.31/32 -j DROP
+-A RH-Firewall-1-INPUT -s 69.129.17.24/32 -j DROP
+-A RH-Firewall-1-INPUT -s 69.128.0.0/16 -j DROP
+-A RH-Firewall-1-INPUT -s 69.129.125.219/32 -j DROP
+-A RH-Firewall-1-INPUT -s 69.129.193.99/32 -j DROP
+-A RH-Firewall-1-INPUT -s 69.244.3.2/32 -j DROP
+-A RH-Firewall-1-INPUT -s 202.51.211.2/32 -j DROP
+-A RH-Firewall-1-INPUT -s 208.35.255.106/32 -j DROP
+-A RH-Firewall-1-INPUT -s 208.42.23.94/32 -j DROP
+-A RH-Firewall-1-INPUT -s 208.112.17.204/32 -j DROP
+-A RH-Firewall-1-INPUT -s 66.230.230.230/32 -j DROP
+-A RH-Firewall-1-INPUT -s 209.181.242.70/32 -j DROP
+-A RH-Firewall-1-INPUT -s 209.181.122.222/32 -j DROP
+-A RH-Firewall-1-INPUT -s 209.160.40.14/32 -j DROP
+-A RH-Firewall-1-INPUT -s 209.181.138.229/32 -j DROP
+-A RH-Firewall-1-INPUT -s 209.181.131.209/32 -j DROP
+-A RH-Firewall-1-INPUT -s 209.181.189.198/32 -j DROP
+-A RH-Firewall-1-INPUT -s 207.224.103.198/32 -j DROP
+-A RH-Firewall-1-INPUT -s 207.225.248.150/32 -j DROP
+-A RH-Firewall-1-INPUT -s 207.206.202.54/32 -j DROP
+-A RH-Firewall-1-INPUT -s 207.206.215.122/32 -j DROP
+-A RH-Firewall-1-INPUT -s 207.224.215.94/32 -j DROP
+-A RH-Firewall-1-INPUT -s 216.186.49.132/32 -j DROP
+-A RH-Firewall-1-INPUT -s 216.184.13.238/32 -j DROP
+-A RH-Firewall-1-INPUT -s 99.236.185.205/32 -j DROP
+-A RH-Firewall-1-INPUT -s 99.237.220.123/32 -j DROP
+-A RH-Firewall-1-INPUT -s 75.60.89.233/32 -j DROP
+-A RH-Firewall-1-INPUT -s 130.88.197.197/32 -j DROP
+-A RH-Firewall-1-INPUT -s 131.142.42.17/32 -j DROP
+-A RH-Firewall-1-INPUT -s 132.239.95.85/32 -j DROP
+-A RH-Firewall-1-INPUT -s 136.159.55.31/32 -j DROP
+-A RH-Firewall-1-INPUT -s 137.248.152.49/32 -j DROP
+-A RH-Firewall-1-INPUT -s 141.20.77.34/32 -j DROP
+-A RH-Firewall-1-INPUT -s 169.244.3.2/32 -j DROP
+-A RH-Firewall-1-INPUT -s 189.6.137.174/32 -j DROP
+-A RH-Firewall-1-INPUT -s 190.81.35.90/32 -j DROP
+-A RH-Firewall-1-INPUT -s 193.0.73.34/32 -j DROP
+-A RH-Firewall-1-INPUT -s 82.145.72.17/32 -j DROP
+-A RH-Firewall-1-INPUT -s 83.134.152.127/32 -j DROP
+#
+## End of suspicious IP addresses
+
+
+
+#Verifiers Access
+-A RH-Firewall-1-INPUT -p tcp --dport 22 -j ACCEPT
+
+#-A RH-Firewall-1-INPUT -p tcp --dport 22 -j REJECT
+-A RH-Firewall-1-INPUT -i lo -j ACCEPT
+-A RH-Firewall-1-INPUT -p icmp --icmp-type any -j ACCEPT
+-A RH-Firewall-1-INPUT -p 50 -j ACCEPT
+-A RH-Firewall-1-INPUT -p 51 -j ACCEPT
+-A RH-Firewall-1-INPUT -p udp --dport 5353 -d 224.0.0.251 -j ACCEPT
+-A RH-Firewall-1-INPUT -p udp -m udp --dport 631 -j ACCEPT
+-A RH-Firewall-1-INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+
+
+#GLOBUS
+-A RH-Firewall-1-INPUT -p tcp --dport 20000:25000 -j ACCEPT
+
+#GSIFTP
+-A RH-Firewall-1-INPUT -p tcp --dport 2811 -j ACCEPT
+-A RH-Firewall-1-INPUT -p tcp --dport 9002 -j ACCEPT
+
+#MDS
+-A RH-Firewall-1-INPUT -p tcp --dport 2135 -j ACCEPT
+
+#BDII (EL SITE BDII ESTA EN EL MON)
+-A RH-Firewall-1-INPUT -p tcp --dport 2170 -j ACCEPT
+
+
+#GATEKEEPER
+-A RH-Firewall-1-INPUT -p tcp --dport 2119 -j ACCEPT
+
+#TORQUE/MAUI
+-A RH-Firewall-1-INPUT -p tcp --dport 15001:15004 -j ACCEPT
+-A RH-Firewall-1-INPUT -p tcp --dport 40559:40560 -j ACCEPT
+
+
+-A RH-Firewall-1-INPUT -p udp --dport 123 -j ACCEPT
+-A RH-Firewall-1-INPUT -p udp --dport 1023 -j ACCEPT
+-A RH-Firewall-1-INPUT -p udp --dport 8655 -j ACCEPT
+-A RH-Firewall-1-INPUT -p udp --dport 15001 -j ACCEPT
+
+
+-A RH-Firewall-1-INPUT -j REJECT --reject-with icmp-host-prohibited
+
+COMMIT
