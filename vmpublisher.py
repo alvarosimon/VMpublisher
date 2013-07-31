@@ -79,11 +79,14 @@ if query_yes_no("Have you received ON email notification?") == True:
 	log.info("Shutting down VM image: "+command)
 	os.system(command)
 	print "Please wait, this will take some time..."
-	command = "oneimage show " + IMAGE_NAME + "|grep STATE|awk '{print $3}'"
+
 	image_status = "lock"
+
 	while image_status != "rdy":
+		command = "oneimage show " + IMAGE_NAME + "|grep STATE|awk '{print $3}'"
 		image_status = run_cmd(command)
-		time.sleep(60)
+		time.sleep(30)
+	
 	print "DONE! the final status: " + image_status
 	
 else:
