@@ -108,7 +108,7 @@ if query_yes_no("Have you received ON email notification?") == True:
 	IMAGE_UUID = "e7782819-da91-489b-b9ec-81a6732ec426"
 
 	# Generate VMcaster template for the new image
-	command = "vmcaster --select-image " + IMAGE_UUID + " --add-image_list_template"
+	command = "vmcaster --select-image " + IMAGE_UUID + " --add-image"
 	log.info("Generating new image template into image list: "+command)
 	os.system(command)
 
@@ -130,35 +130,38 @@ if query_yes_no("Have you received ON email notification?") == True:
 	os.system(command)
 
 	# Filling image fields
-	command = 'vmcaster --select-image ' + IMAGE_UUID + ' --key-set-image "dc:description"  --key-value-image' + IMAGE_DESCRIPTION
+	command = 'vmcaster --select-image ' + IMAGE_UUID + ' --key-set-image "dc:description"  --key-value-image "' + IMAGE_DESCRIPTION + '"'
 	os.system(command)
-	command = 'vmcaster --select-image ' + IMAGE_UUID + ' --key-set-image "dc:title"  --key-value-image ' + IMAGE_TITLE 
+	command = 'vmcaster --select-image ' + IMAGE_UUID + ' --key-set-image "dc:title"  --key-value-image "' + IMAGE_TITLE + '"'
 	os.system(command)
-	command = 'vmcaster --select-image ' + IMAGE_UUID + ' --key-set-image "hv:hypervisor"  --key-value-image ' + IMAGE_HYPERVISOR
+	command = 'vmcaster --select-image ' + IMAGE_UUID + ' --key-set-image "hv:hypervisor"  --key-value-image "' + IMAGE_HYPERVISOR + '"'
 	os.system(command)
-	command = 'vmcaster --select-image ' + IMAGE_UUID + ' --key-set-image "hv:format"  --key-value-image ' + IMAGE_FORMAT 
+	command = 'vmcaster --select-image ' + IMAGE_UUID + ' --key-set-image "hv:format"  --key-value-image "' + IMAGE_FORMAT + '"'
 	os.system(command)
-	command = 'vmcaster --select-image ' + IMAGE_UUID + ' --key-set-image "sl:comments"  --key-value-image ' + IMAGE_COMMENTS
+	command = 'vmcaster --select-image ' + IMAGE_UUID + ' --key-set-image "sl:comments"  --key-value-image "' + IMAGE_COMMENTS + '"'
 	os.system(command)
-	command = 'vmcaster --select-image ' + IMAGE_UUID + ' --key-set-image "sl:arch"  --key-value-image ' + IMAGE_ARCH
+	command = 'vmcaster --select-image ' + IMAGE_UUID + ' --key-set-image "sl:arch"  --key-value-image "' + IMAGE_ARCH + '"'
 	os.system(command)
-	command = 'vmcaster --select-image ' + IMAGE_UUID + ' --key-set-image "sl:os"  --key-value-image ' + IMAGE_OS
+	command = 'vmcaster --select-image ' + IMAGE_UUID + ' --key-set-image "sl:os"  --key-value-image "' + IMAGE_OS + '"'
 	os.system(command)
-	command = 'vmcaster --select-image ' + IMAGE_UUID + ' --key-set-image "sl:osversion"  --key-value-image ' + IMAGE_OSVERSION
+	command = 'vmcaster --select-image ' + IMAGE_UUID + ' --key-set-image "sl:osversion"  --key-value-image "' + IMAGE_OSVERSION + '"'
 	os.system(command)
 	command = 'vmcaster --select-image ' + IMAGE_UUID + ' --key-set-image "hv:uri"  --key-value-image "http://cloud.cesga.es/images/test.qcow2"'
 	os.system(command)
 
 
 	# Upload the new image from ON datastore to web service
-	command = 'vmcaster --upload-image ' + IMAGE_SOURCE + ' --select-image ' + IMAGE_UUID + ' --verbose --verbose'
-	print "Uploading the new image to web service. Please wait..."
+	#command = 'vmcaster --upload-image ' + IMAGE_SOURCE + ' --select-image ' + IMAGE_UUID + ' --verbose --verbose'
+	command = 'vmcaster --upload-image ' + IMAGE_SOURCE + ' --select-image ' + IMAGE_UUID
+	print "Uploading the new image to web service. This will take a while please wait..."
 	log.info("Uploading new image to cloud.cesga.es web service: "+command)
 	os.system(command)
 
 	# Publish the new image list
-	#command = 'vmcaster --select-imagelist ' + IMAGE_LIST + ' --upload-imagelist'
-	#os.system(command)
+	command = 'vmcaster --select-imagelist ' + IMAGE_LIST + ' --upload-imagelist'
+	print "Uploading the new image list version to cloud.cesga.es..."
+	log.info("Uploading image list to cloud.cesga.es: "+command)
+	os.system(command)
 	
 else:
 	print "Removing temp file image and VM..."
