@@ -67,19 +67,19 @@ VM_NAME = "test11_marketplace_SL6"
 IMAGE_NAME = "VMpublisher-UI"
 
 
-#command = "onetemplate instantiate 165 -n " + VM_NAME
+command = "onetemplate instantiate 165 -n " + VM_NAME
 log.info("Running VM instantiation: "+command)
 os.system(command)
 
 print "Generating new image into datastore..."
-#command = "onevm saveas " + VM_NAME + " 0 " + IMAGE_NAME
+command = "onevm saveas " + VM_NAME + " 0 " + IMAGE_NAME
 log.info("VM image backup: "+command)
 os.system(command)
 
 if query_yes_no("Have you received ON email notification?") == True:
 	print "Ok, we will continue..."
 	print "Shutting down "+ VM_NAME
-	#command = "onevm shutdown " + VM_NAME
+	command = "onevm shutdown " + VM_NAME
 	log.info("Shutting down VM image: "+command)
 	os.system(command)
 	print "Please wait, this will take some time..."
@@ -105,7 +105,7 @@ if query_yes_no("Have you received ON email notification?") == True:
 	print "This is the new image UUID: " + IMAGE_UUID
 
 	# DEBUG: UUID hardcoded
-	IMAGE_UUID = "e7782819-da91-489b-b9ec-81a6732ec426"
+	#IMAGE_UUID = "e7782819-da91-489b-b9ec-81a6732ec426"
 
 	# Generate VMcaster template for the new image
 	command = "vmcaster --select-image " + IMAGE_UUID + " --add-image"
@@ -155,7 +155,14 @@ if query_yes_no("Have you received ON email notification?") == True:
 	command = 'vmcaster --upload-image ' + IMAGE_SOURCE + ' --select-image ' + IMAGE_UUID
 	print "Uploading the new image to web service. This will take a while please wait..."
 	log.info("Uploading new image to cloud.cesga.es web service: "+command)
-	os.system(command)
+	if os.system(command) != 0:
+    		print "Error uploading ON image!"
+		log.error("ERROR: "+command)
+		sys.exit(1)
+	else:
+		command = "oneimage delete " + IMAGE_NAME
+		print "Removin ON image " + IMAGE_NAME + " from datastore"
+		os.system(command)
 
 	# Publish the new image list
 	command = 'vmcaster --select-imagelist ' + IMAGE_LIST + ' --upload-imagelist'
