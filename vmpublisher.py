@@ -21,6 +21,22 @@ from subprocess import *
 time_format_definition = "%Y-%m-%dT%H:%M:%SZ"
 log = logging.getLogger("OpenNebula")
 
+# DEBUG: Use a predefined ON OS template
+VM_NAME = "test11_marketplace_SL6"
+IMAGE_NAME = "VMpublisher-UI"
+# DEBUG: VMcaster fields (hardcoded, should be gathered from ON)
+IMAGE_DESCRIPTION = "UI-UMD3.0.0"
+IMAGE_TITLE = "EMI-UI"
+IMAGE_HYPERVISOR = "QEMU,KVM"
+IMAGE_FORMAT = "QCOW2"
+IMAGE_COMMENTS = "UMD3 testing image. login:root pass:umdtest"
+IMAGE_ARCH = "x86_64"
+IMAGE_OS = "Linux"
+IMAGE_OSVERSION = "Scientific Linux release 6.4 (Carbon)"
+# CESGA internal image list
+IMAGE_LIST = "2204eed5-f37e-45b9-82c6-85697356109c"
+
+
 def run_cmd(cmd):
         p = Popen(cmd, shell=True, stdout=PIPE)
         output = p.communicate()[0]
@@ -63,8 +79,7 @@ def query_yes_no(question, default="yes"):
 command = "ls"
 print "Running VMpublisher..."
 
-VM_NAME = "test11_marketplace_SL6"
-IMAGE_NAME = "VMpublisher-UI"
+
 
 
 command = "onetemplate instantiate 165 -n " + VM_NAME
@@ -112,17 +127,6 @@ if query_yes_no("Have you received ON email notification?") == True:
 	log.info("Generating new image template into image list: "+command)
 	os.system(command)
 
-	# DEBUG: VMcaster fields (hardcoded)
-	IMAGE_DESCRIPTION = "UI-UMD3.0.0"
-	IMAGE_TITLE = "EMI-UI"
-	IMAGE_HYPERVISOR = "QEMU,KVM"
-	IMAGE_FORMAT = "QCOW2"
-	IMAGE_COMMENTS = "UMD3 testing image. login:root pass:umdtest"
-	IMAGE_ARCH = "x86_64"
-	IMAGE_OS = "Linux"
-	IMAGE_OSVERSION = "Scientific Linux release 6.4 (Carbon)"
-	# CESGA internal image list
-	IMAGE_LIST = "2204eed5-f37e-45b9-82c6-85697356109c"
 
 	# Add the new template to CESGA image list
 	command = "vmcaster --select-imagelist " + IMAGE_LIST + " --imagelist-add-image --select-image " + IMAGE_UUID
