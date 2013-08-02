@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import sys
+import getopt
 
 if sys.version_info < (2, 4):
     print "Your python interpreter is too old. Please consider upgrading."
@@ -22,7 +23,7 @@ time_format_definition = "%Y-%m-%dT%H:%M:%SZ"
 log = logging.getLogger("OpenNebula")
 
 # DEBUG: Use a predefined ON OS template
-VM_NAME = "test11_marketplace_SL6"
+#VM_NAME = "test11_marketplace_SL6"
 IMAGE_NAME = "VMpublisher-UI"
 # DEBUG: VMcaster fields (hardcoded, should be gathered from ON)
 IMAGE_DESCRIPTION = "UI-UMD3.0.0"
@@ -34,7 +35,30 @@ IMAGE_ARCH = "x86_64"
 IMAGE_OS = "Linux"
 IMAGE_OSVERSION = "Scientific Linux release 6.4 (Carbon)"
 # CESGA internal image list
-IMAGE_LIST = "2204eed5-f37e-45b9-82c6-85697356109c"
+#IMAGE_LIST = "2204eed5-f37e-45b9-82c6-85697356109c"
+
+
+def main(argv):
+   VM_NAME = ''
+   IMAGE_LIST = ''
+   if not argv:
+      print "ERROR: unhandled option"
+      print 'USAGE: vmpublisher.py -i <image list ID> -t <OpenNebula OS template>'
+      sys.exit(2)
+   try:
+      opts, args = getopt.getopt(argv,"hi:t:",["image-list=","on-template="])
+   except getopt.GetoptError:
+      print 'vmpublisher.py -i <image list ID> -t <OpenNebula OS template>'
+      sys.exit(2)
+   for opt, arg in opts:
+      if opt == '-h':
+         print 'vmpublisher.py -i <image list ID> -t <OpenNebula OS template>'
+         sys.exit()
+      elif opt in ("-i", "--image-list"):
+         IMAGE_LIST = arg
+      elif opt in ("-t", "--on-template"):
+         VM_NAME = arg
+
 
 
 def run_cmd(cmd):
@@ -76,6 +100,10 @@ def query_yes_no(question, default="yes"):
                              "(or 'y' or 'n').\n")
 
 
+
+if __name__ == "__main__":
+	main(sys.argv[1:])
+
 command = "ls"
 print "Running VMpublisher..."
 
@@ -93,7 +121,7 @@ os.system(command)
 
 if query_yes_no("Have you received ON email notification?") == True:
 	print "Ok, we will continue..."
-	print "Shutting down "+ VM_NAME
+	print ("Shutting down {}".format(VM_NAME))
 	command = "onevm shutdown " + VM_NAME
 	log.info("Shutting down VM image: "+command)
 	os.system(command)
@@ -104,20 +132,20 @@ if query_yes_no("Have you received ON email notification?") == True:
 		command = "oneimage show " + IMAGE_NAME + "|grep STATE|awk '{print $3}'"
 		IMAGE_STATUS = run_cmd(command).strip()
 		if IMAGE_STATUS == 'rdy':
-			print "Image ready from datastore. Image status: " + IMAGE_STATUS
+			print ("Image ready from datastore. Image status: {}".format(IMAGE_STATUS))
 			log.info("VM image is available from repository: "+command)
 			command = "oneimage show " + IMAGE_NAME + "|grep SOURCE|awk '{print $3}'"
 			IMAGE_SOURCE = run_cmd(command).strip()
-			print "This is the image source path: " + IMAGE_SOURCE 
+			print ("This is the image source path: {}".format(IMAGE_SOURCE))
 			break
 		else:
-			print "Not available yet. Image status: " + IMAGE_STATUS 
+			print ("Not available yet. Image status: {}".format(IMAGE_STATUS))
 			time.sleep(30)
 
 	# VMcaster: publishing new SA2 VM image
 	# Create a new random UUID for thie image 
 	IMAGE_UUID = str(uuid.uuid4())
-	print "This is the new image UUID: " + IMAGE_UUID
+	print ("This is the new image UUID:{} ".format(IMAGE_UUID))
 
 	# DEBUG: UUID hardcoded
 	#IMAGE_UUID = "e7782819-da91-489b-b9ec-81a6732ec426"
@@ -165,7 +193,7 @@ if query_yes_no("Have you received ON email notification?") == True:
 		sys.exit(1)
 	else:
 		command = "oneimage delete " + IMAGE_NAME
-		print "Removin ON image " + IMAGE_NAME + " from datastore"
+		print ("Removin ON image {} from datastore".format(IMAGE_NAME))
 		os.system(command)
 
 	# Publish the new image list
