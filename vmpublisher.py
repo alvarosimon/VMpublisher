@@ -17,48 +17,49 @@ import time
 import commands
 import uuid
 from subprocess import *
+from xml.dom.minidom import parseString
 
 
 time_format_definition = "%Y-%m-%dT%H:%M:%SZ"
 log = logging.getLogger("OpenNebula")
 
 # DEBUG: Use a predefined ON OS template
-#VM_NAME = "test11_marketplace_SL6"
-IMAGE_NAME = "VMpublisher-UI"
-# DEBUG: VMcaster fields (hardcoded, should be gathered from ON)
-IMAGE_DESCRIPTION = "UI-UMD3.0.0"
-IMAGE_TITLE = "EMI-UI"
 IMAGE_HYPERVISOR = "QEMU,KVM"
-IMAGE_FORMAT = "QCOW2"
-IMAGE_COMMENTS = "UMD3 testing image. login:root pass:umdtest"
+IMAGE_COMMENTS = "UMD testing image. login:root pass:umdtest"
 IMAGE_ARCH = "x86_64"
 IMAGE_OS = "Linux"
 IMAGE_OSVERSION = "Scientific Linux release 6.4 (Carbon)"
-# CESGA internal image list
-#IMAGE_LIST = "2204eed5-f37e-45b9-82c6-85697356109c"
+VM_NAME = ''
+IMAGE_LIST = ''
+IMAGE_NAME = ''
+IMAGE_TITLE = ''
+IMAGE_DESCRIPTION = ''
+IMAGE_FORMAT = ''
+
+
 
 
 def main(argv):
-   VM_NAME = ''
-   IMAGE_LIST = ''
-   if not argv:
-      print "ERROR: unhandled option"
+   global VM_NAME
+   global IMAGE_LIST
+   if not argv or len(sys.argv) < 2:
+      print 'ERROR: unhandled option'
       print 'USAGE: vmpublisher.py -i <image list ID> -t <OpenNebula OS template>'
+      print 'Example: vmpublisher.py --image-list 2204eed5-f37e-45b9-82c6-85697356109c --on-template test11.egi.cesga.es_market'
       sys.exit(2)
    try:
-      opts, args = getopt.getopt(argv,"hi:t:",["image-list=","on-template="])
+      opts, args = getopt.getopt(argv,'hi:t:',['help','image-list=','on-template='])
    except getopt.GetoptError:
       print 'vmpublisher.py -i <image list ID> -t <OpenNebula OS template>'
       sys.exit(2)
    for opt, arg in opts:
-      if opt == '-h':
+      if opt in ('-h','--help'):
          print 'vmpublisher.py -i <image list ID> -t <OpenNebula OS template>'
          sys.exit()
       elif opt in ("-i", "--image-list"):
          IMAGE_LIST = arg
       elif opt in ("-t", "--on-template"):
          VM_NAME = arg
-
 
 
 def run_cmd(cmd):
@@ -105,12 +106,31 @@ if __name__ == "__main__":
 	main(sys.argv[1:])
 
 command = "ls"
-print "Running VMpublisher..."
+print 'Running VMpublisher...'
+
+# Getting templates values from ON xml
+command = "onetemplate show " + VM_NAME + " -x"
+template_xml = run_cmd(command)
+dom = parseString(template_xml)
+
+#retrieve the first xml tag (<tag>data</tag>) that the parser finds with name tagName:
+xmlTag = dom.getElementsByTagName('PRODUCT')[0].toxml()
+#strip off the tag (<tag>data</tag>  --->   data):
+xmlData=xmlTag.replace('<PRODUCT><![CDATA[','').replace(']]></PRODUCT>','')
+IMAGE_NAME = "VMpublisher-" + xmlData.upper()
+IMAGE_TITLE = xmlData.upper()
+
+xmlTag = dom.getElementsByTagName('VERSION')[0].toxml()
+xmlData=xmlTag.replace('<VERSION><![CDATA[','').replace(']]></VERSION>','')
+IMAGE_DESCRIPTION = IMAGE_TITLE + "-UMD-" + xmlData.upper()
+
+xmlTag = dom.getElementsByTagName('DRIVER')[0].toxml()
+xmlData=xmlTag.replace('<DRIVER><![CDATA[','').replace(']]></DRIVER>','')
+IMAGE_FORMAT = xmlData.upper()
 
 
 
-
-command = "onetemplate instantiate 165 -n " + VM_NAME
+command = "onetemplate instantiate " + VM_NAME + " -n " + VM_NAME
 log.info("Running VM instantiation: "+command)
 os.system(command)
 
@@ -119,9 +139,11 @@ command = "onevm saveas " + VM_NAME + " 0 " + IMAGE_NAME
 log.info("VM image backup: "+command)
 os.system(command)
 
+
+
 if query_yes_no("Have you received ON email notification?") == True:
 	print "Ok, we will continue..."
-	print ("Shutting down {}".format(VM_NAME))
+	print ('Shutting down {0}'.format(VM_NAME))
 	command = "onevm shutdown " + VM_NAME
 	log.info("Shutting down VM image: "+command)
 	os.system(command)
@@ -132,23 +154,21 @@ if query_yes_no("Have you received ON email notification?") == True:
 		command = "oneimage show " + IMAGE_NAME + "|grep STATE|awk '{print $3}'"
 		IMAGE_STATUS = run_cmd(command).strip()
 		if IMAGE_STATUS == 'rdy':
-			print ("Image ready from datastore. Image status: {}".format(IMAGE_STATUS))
+			print ('Image ready from datastore. Image status: {0}'.format(IMAGE_STATUS))
 			log.info("VM image is available from repository: "+command)
 			command = "oneimage show " + IMAGE_NAME + "|grep SOURCE|awk '{print $3}'"
 			IMAGE_SOURCE = run_cmd(command).strip()
-			print ("This is the image source path: {}".format(IMAGE_SOURCE))
+			print ('This is the image source path: {0}'.format(IMAGE_SOURCE))
 			break
 		else:
-			print ("Not available yet. Image status: {}".format(IMAGE_STATUS))
+			print ('Not available yet. Image status: {0}'.format(IMAGE_STATUS))
 			time.sleep(30)
 
 	# VMcaster: publishing new SA2 VM image
 	# Create a new random UUID for thie image 
 	IMAGE_UUID = str(uuid.uuid4())
-	print ("This is the new image UUID:{} ".format(IMAGE_UUID))
+	print ('This is the new image UUID:{0} '.format(IMAGE_UUID))
 
-	# DEBUG: UUID hardcoded
-	#IMAGE_UUID = "e7782819-da91-489b-b9ec-81a6732ec426"
 
 	# Generate VMcaster template for the new image
 	command = "vmcaster --select-image " + IMAGE_UUID + " --add-image"
@@ -193,12 +213,12 @@ if query_yes_no("Have you received ON email notification?") == True:
 		sys.exit(1)
 	else:
 		command = "oneimage delete " + IMAGE_NAME
-		print ("Removin ON image {} from datastore".format(IMAGE_NAME))
+		print ('Removin ON image {0} from datastore'.format(IMAGE_NAME))
 		os.system(command)
 
 	# Publish the new image list
 	command = 'vmcaster --select-imagelist ' + IMAGE_LIST + ' --upload-imagelist'
-	print "Uploading the new image list version to cloud.cesga.es..."
+	print 'Uploading the new image list version to cloud.cesga.es...'
 	log.info("Uploading image list to cloud.cesga.es: "+command)
 	os.system(command)
 	
