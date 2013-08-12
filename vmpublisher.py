@@ -100,6 +100,18 @@ def query_yes_no(question, default="yes"):
             sys.stdout.write("Please respond with 'yes' or 'no' "\
                              "(or 'y' or 'n').\n")
 
+def xml_on_parse(tagname,VM_NAME):
+	# Getting templates values from ON xml
+	command = "onetemplate show " + VM_NAME + " -x"
+	template_xml = run_cmd(command)
+	dom = parseString(template_xml)
+
+	#retrieve the first xml tag (<tag>data</tag>) that the parser finds with name tagName:
+	xmlTag = dom.getElementsByTagName(tagname)[0].toxml()
+	#strip off the tag (<tag>data</tag>  --->   data):
+	xmlData=xmlTag.replace('<'+tagname+'><![CDATA[','').replace(']]></'+tagname+'>','')
+	data  = xmlData.upper()
+	return data
 
 
 if __name__ == "__main__":
@@ -108,26 +120,10 @@ if __name__ == "__main__":
 command = "ls"
 print 'Running VMpublisher...'
 
-# Getting templates values from ON xml
-command = "onetemplate show " + VM_NAME + " -x"
-template_xml = run_cmd(command)
-dom = parseString(template_xml)
-
-#retrieve the first xml tag (<tag>data</tag>) that the parser finds with name tagName:
-xmlTag = dom.getElementsByTagName('PRODUCT')[0].toxml()
-#strip off the tag (<tag>data</tag>  --->   data):
-xmlData=xmlTag.replace('<PRODUCT><![CDATA[','').replace(']]></PRODUCT>','')
-IMAGE_NAME = "VMpublisher-" + xmlData.upper()
-IMAGE_TITLE = xmlData.upper()
-
-xmlTag = dom.getElementsByTagName('VERSION')[0].toxml()
-xmlData=xmlTag.replace('<VERSION><![CDATA[','').replace(']]></VERSION>','')
-IMAGE_DESCRIPTION = IMAGE_TITLE + "-UMD-" + xmlData.upper()
-
-xmlTag = dom.getElementsByTagName('DRIVER')[0].toxml()
-xmlData=xmlTag.replace('<DRIVER><![CDATA[','').replace(']]></DRIVER>','')
-IMAGE_FORMAT = xmlData.upper()
-
+IMAGE_TITLE = xml_on_parse("PRODUCT",VM_NAME)
+IMAGE_NAME = "VMpublisher-" + IMAGE_TITLE
+IMAGE_DESCRIPTION = IMAGE_TITLE + "-UMD-" + xml_on_parse("VERSION",VM_NAME)
+IMAGE_FORMAT = xml_on_parse("DRIVER",VM_NAME)
 
 
 command = "onetemplate instantiate " + VM_NAME + " -n " + VM_NAME
