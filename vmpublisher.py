@@ -26,7 +26,7 @@ hdlr = logging.FileHandler('/tmp/VMpublisher.log')
 formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
 hdlr.setFormatter(formatter)
 log.addHandler(hdlr)
-#log.setLevel(logging.WARNING)
+log.setLevel(logging.INFO)
 
 
 # DEBUG: Use a predefined ON OS template
