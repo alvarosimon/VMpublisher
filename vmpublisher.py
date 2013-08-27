@@ -21,7 +21,13 @@ from xml.dom.minidom import parseString
 
 
 time_format_definition = "%Y-%m-%dT%H:%M:%SZ"
-log = logging.getLogger("OpenNebula")
+log = logging.getLogger("VMpublisher")
+hdlr = logging.FileHandler('/tmp/VMpublisher.log')
+formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+hdlr.setFormatter(formatter)
+log.addHandler(hdlr)
+#log.setLevel(logging.WARNING)
+
 
 # DEBUG: Use a predefined ON OS template
 IMAGE_HYPERVISOR = "QEMU,KVM"
@@ -196,6 +202,7 @@ if query_yes_no("Have you received ON email notification?") == True:
 	os.system(command)
 	command = 'vmcaster --select-image ' + IMAGE_UUID + ' --key-set-image "hv:uri"  --key-value-image "http://cloud.cesga.es/images/test.qcow2"'
 	os.system(command)
+	log.info("Filling image list fields...")
 
 
 	# Upload the new image from ON datastore to web service
@@ -205,7 +212,7 @@ if query_yes_no("Have you received ON email notification?") == True:
 	log.info("Uploading new image to cloud.cesga.es web service: "+command)
 	if os.system(command) != 0:
     		print "Error uploading ON image!"
-		log.error("ERROR: "+command)
+		log.error("IMAGE UPLOAD ERROR: "+command)
 		sys.exit(1)
 	else:
 		command = "oneimage delete " + IMAGE_NAME
@@ -221,6 +228,7 @@ if query_yes_no("Have you received ON email notification?") == True:
 else:
 	print "Removing temp file image and VM..."
 	print "See ya"
+	log.info("Exiting....")
         sys.exit(1)
 
 print "This is the end my only friend, the end..."
